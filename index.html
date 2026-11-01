@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="বাংলাদেশের সকল জেলায় অনলাইন ও অফলাইন টিউশন খুঁজুন এবং শিক্ষক হিসেবে যুক্ত হোন।">
+  <title>অনলাইন টিউশন | Online Tuition Bangladesh</title>
+  <style>
+    :root{--ink:#14213d;--muted:#637083;--brand:#176b52;--brand2:#0f513d;--mint:#e9f6ef;--line:#e5eaf0;--paper:#f7faf8;--white:#fff;--gold:#f4b942}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali","Hind Siliguri",sans-serif;color:var(--ink);background:#fff;line-height:1.6}
+    a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container{width:min(1120px,calc(100% - 36px));margin:auto}
+    header{height:76px;border-bottom:1px solid var(--line);display:flex;align-items:center;background:#fff;position:sticky;top:0;z-index:10}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:20px}.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;color:var(--brand)}
+    .logo-mark{width:39px;height:39px;border-radius:12px;background:var(--brand);color:white;display:grid;place-items:center;font-weight:900}
+    .links{display:flex;align-items:center;gap:24px;color:#465366;font-size:14px}.links a:hover{color:var(--brand)}
+    .actions{display:flex;gap:10px;align-items:center}.btn{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer;display:inline-flex;justify-content:center;align-items:center;gap:7px}
+    .btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{background:var(--brand2)}.btn-light{background:var(--mint);color:var(--brand)}.btn-outline{background:#fff;border:1px solid #cbd8d1;color:var(--brand)}
+    .hero{background:linear-gradient(115deg,#f0faf4 0%,#f8fbff 70%);padding:72px 0 62px;overflow:hidden}
+    .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:42px;align-items:center}
+    .eyebrow{display:inline-block;background:#dff1e7;color:var(--brand);padding:6px 12px;border-radius:30px;font-size:13px;font-weight:750}
+    h1{font-size:clamp(34px,5vw,54px);line-height:1.2;letter-spacing:-1.1px;margin:18px 0 16px}
+    h1 span{color:var(--brand)}.lead{font-size:17px;color:var(--muted);max-width:570px;margin:0 0 25px}
+    .hero-buttons{display:flex;gap:12px;flex-wrap:wrap}.hero-note{font-size:12px;color:#718071;margin-top:16px}
+    .visual{background:#fff;border:1px solid #e4eee7;border-radius:24px;padding:24px;box-shadow:0 20px 55px #173d2512;position:relative}
+    .visual-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.visual-title{font-weight:800;font-size:18px}.tag{font-size:11px;background:#e9f6ef;color:var(--brand);padding:5px 9px;border-radius:20px}
+    .tutor{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #edf1ee}.avatar{width:45px;height:45px;border-radius:14px;background:#e7eefb;display:grid;place-items:center;font-size:21px}.tutor:nth-of-type(3) .avatar{background:#fff0dc}.tutor:nth-of-type(4) .avatar{background:#f5eafd}
+    .tutor-info{flex:1}.tutor-info b{display:block;font-size:14px}.tutor-info small{color:var(--muted);font-size:12px}.rating{font-size:12px;color:#a56b00}
+    .visual-foot{margin-top:16px;background:var(--paper);padding:12px;border-radius:12px;text-align:center;color:var(--brand);font-size:13px;font-weight:700}
+    .search-wrap{margin-top:-25px;position:relative}.search-box{background:#fff;padding:18px;border-radius:16px;box-shadow:0 12px 35px #1c3c2815;border:1px solid var(--line);display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:12px}
+    .field label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;background:white;color:var(--ink);outline-color:var(--brand)}
+    section{padding:66px 0}.section-head{text-align:center;margin-bottom:30px}.section-head h2{font-size:30px;margin:0 0 8px}.section-head p{margin:0;color:var(--muted)}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.feature{border:1px solid var(--line);border-radius:16px;padding:23px;background:#fff}.feature-icon{width:48px;height:48px;border-radius:14px;background:var(--mint);display:grid;place-items:center;font-size:23px;margin-bottom:14px}.feature h3{margin:0 0 7px;font-size:18px}.feature p{margin:0;color:var(--muted);font-size:14px}
+    .steps{background:var(--paper)}.step{position:relative}.number{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:white;font-weight:800;margin-bottom:12px}
+    .cta{background:var(--brand);color:#fff;border-radius:22px;padding:36px;display:flex;align-items:center;justify-content:space-between;gap:24px}.cta p{color:#d8eee4;margin:5px 0 0}.cta .btn{background:#fff;color:var(--brand)}
+    footer{background:#102d25;color:#dce9e2;padding:38px 0 22px}.footer-row{display:flex;justify-content:space-between;gap:25px;flex-wrap:wrap}.footer-brand{font-weight:800;font-size:20px}.footer-muted{color:#b6c9bf;font-size:13px;max-width:440px}.footer-links{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}.copyright{border-top:1px solid #ffffff22;margin-top:25px;padding-top:16px;color:#a9beb3;font-size:12px}
+    .modal{display:none;position:fixed;inset:0;background:#10251fc2;z-index:30;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-card{width:min(460px,100%);background:white;border-radius:18px;padding:25px;position:relative;max-height:90vh;overflow:auto}.close{position:absolute;right:15px;top:12px;border:0;background:#f1f4f2;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:20px}.modal-card h2{margin:0 0 4px}.modal-card>p{color:var(--muted);font-size:13px;margin:0 0 18px}.form-field{margin:12px 0}.form-field label{display:block;font-size:13px;font-weight:650;margin-bottom:5px}.form-field input,.form-field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px}.form-submit{width:100%;margin-top:10px}.notice{font-size:11px;color:var(--muted);margin-top:12px}.mobile-menu{display:none}
+    @media(max-width:800px){.links{display:none}.hero{padding:48px 0}.hero-grid{grid-template-columns:1fr}.visual{max-width:520px}.search-box{grid-template-columns:1fr 1fr}.search-box .btn{grid-column:1/-1}.grid3{grid-template-columns:1fr 1fr}.cta{align-items:flex-start;flex-direction:column}}
+    @media(max-width:520px){header{height:66px}.logo{font-size:18px}.actions .btn{padding:9px 11px;font-size:13px}.hero-grid{gap:28px}h1{font-size:36px}.lead{font-size:15px}.search-box{grid-template-columns:1fr;padding:14px}.search-box .btn{grid-column:auto}.grid3{grid-template-columns:1fr}section{padding:48px 0}.section-head h2{font-size:25px}.visual{padding:17px}.cta{padding:25px}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="container nav">
+    <a class="logo" href="#"><span class="logo-mark">ট</span><span>অনলাইন টিউশন</span></a>
+    <nav class="links"><a href="#how">কীভাবে কাজ করে</a><a href="#benefits">সুবিধাসমূহ</a><a href="#safety">নিরাপত্তা</a></nav>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="openModal('login')">লগইন</button>
+      <button class="btn btn-primary" onclick="openModal('register')">নিবন্ধন</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">বাংলাদেশের সকল জেলার জন্য</span>
+        <h1>আপনার প্রয়োজনের<br><span>সঠিক শিক্ষক</span> খুঁজুন</h1>
+        <p class="lead">শিক্ষার্থী ও অভিভাবকদের সঙ্গে দক্ষ গৃহশিক্ষকদের সংযুক্ত করার সহজ মাধ্যম। বাসায় বা অনলাইনে—আপনার সুবিধামতো টিউশন খুঁজুন।</p>
+        <div class="hero-buttons">
+          <a class="btn btn-primary" href="#find">টিউশন খুঁজুন <span>→</span></a>
+          <button class="btn btn-light" onclick="openModal('register','teacher')">শিক্ষক হিসেবে যুক্ত হোন</button>
+        </div>
+        <div class="hero-note">শিক্ষক নিবন্ধন বিনামূল্যে • মোবাইল ও কম্পিউটার উপযোগী</div>
+      </div>
+      <div class="visual" aria-label="শিক্ষক খোঁজার নমুনা">
+        <div class="visual-top"><div class="visual-title">জনপ্রিয় টিউশন বিভাগ</div><span class="tag">বাংলাদেশ</span></div>
+        <div class="tutor"><div class="avatar">📘</div><div class="tutor-info"><b>স্কুল পর্যায়</b><small>১ম–১০ম শ্রেণি • সকল বিষয়</small></div><span class="rating">শিখুন</span></div>
+        <div class="tutor"><div class="avatar">🧮</div><div class="tutor-info"><b>গণিত ও বিজ্ঞান</b><small>গণিত • পদার্থ • রসায়ন</small></div><span class="rating">শিখুন</span></div>
+        <div class="tutor"><div class="avatar">🗣️</div><div class="tutor-info"><b>ভাষা শিক্ষা</b><small>বাংলা • ইংরেজি • আরবি</small></div><span class="rating">শিখুন</span></div>
+        <div class="tutor"><div class="avatar">💻</div><div class="tutor-info"><b>অনলাইন টিউশন</b><small>ঘরে বসে পড়াশোনা</small></div><span class="rating">শিখুন</span></div>
+        <div class="visual-foot">আপনার এলাকার টিউশন ও শিক্ষক খুঁজুন</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container search-wrap" id="find">
+    <form class="search-box" onsubmit="searchNotice(event)">
+      <div class="field"><label for="district">জেলা</label><select id="district"><option value="">জেলা নির্বাচন করুন</option><option>চট্টগ্রাম</option><option>ঢাকা</option><option>কক্সবাজার</option><option>ফেনী</option><option>কুমিল্লা</option><option>রাজশাহী</option><option>খুলনা</option><option>সিলেট</option><option>বরিশাল</option><option>রংপুর</option><option>ময়মনসিংহ</option></select></div>
+      <div class="field"><label for="class">শ্রেণি</label><select id="class"><option value="">শ্রেণি নির্বাচন করুন</option><option>প্রাথমিক</option><option>৬ষ্ঠ–৮ম</option><option>৯ম–১০ম</option><option>একাদশ–দ্বাদশ</option><option>বিশ্ববিদ্যালয়</option><option>মাদ্রাসা</option></select></div>
+      <div class="field"><label for="type">টিউশনের ধরন</label><select id="type"><option value="">সব ধরনের</option><option>বাসায় পড়ানো</option><option>অনলাইন</option></select></div>
+      <button class="btn btn-primary" type="submit">টিউশন খুঁজুন</button>
+    </form>
+  </div>
+
+  <section id="benefits">
+    <div class="container">
+      <div class="section-head"><h2>কেন Online Tuition?</h2><p>শিক্ষক ও অভিভাবক—দুই পক্ষের জন্য সহজ ও গোছানো অভিজ্ঞতা।</p></div>
+      <div class="grid3">
+        <article class="feature"><div class="feature-icon">📍</div><h3>সারা বাংলাদেশে</h3><p>জেলা ও উপজেলা অনুযায়ী নিজের এলাকার টিউশন খুঁজে নেওয়ার সুবিধা।</p></article>
+        <article class="feature"><div class="feature-icon">👩‍🏫</div><h3>শিক্ষকের প্রোফাইল</h3><p>শিক্ষাগত যোগ্যতা, বিষয়, অভিজ্ঞতা ও পছন্দের এলাকা দিয়ে প্রোফাইল তৈরি।</p></article>
+        <article class="feature"><div class="feature-icon">📋</div><h3>আবেদন ও নির্বাচন</h3><p>অভিভাবক আবেদনগুলো দেখে পছন্দের শিক্ষকের সঙ্গে সাক্ষাৎকার নিতে পারবেন।</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="steps" id="how">
+    <div class="container">
+      <div class="section-head"><h2>যেভাবে কাজ করবে</h2><p>মাত্র কয়েকটি সহজ ধাপে টিউশন খোঁজা ও আবেদন।</p></div>
+      <div class="grid3">
+        <article class="feature step"><div class="number">১</div><h3>অ্যাকাউন্ট খুলুন</h3><p>শিক্ষক অথবা অভিভাবক হিসেবে নিবন্ধন করুন এবং প্রয়োজনীয় তথ্য দিন।</p></article>
+        <article class="feature step"><div class="number">২</div><h3>টিউশন পোস্ট বা আবেদন</h3><p>অভিভাবক টিউশনের তথ্য প্রকাশ করবেন, শিক্ষক উপযুক্ত টিউশনে আবেদন করবেন।</p></article>
+        <article class="feature step"><div class="number">৩</div><h3>সাক্ষাৎকার ও চুক্তি</h3><p>অভিভাবক শিক্ষক নির্বাচন করে শর্ত ও মাসিক ফি নিশ্চিত করবেন।</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="safety">
+    <div class="container">
+      <div class="cta">
+        <div><h2 style="margin:0">শিক্ষক হিসেবে যুক্ত হতে চান?</h2><p>নিজের দক্ষতা ও অভিজ্ঞতা তুলে ধরে টিউশনের জন্য আবেদন করুন।</p></div>
+        <button class="btn" onclick="openModal('register','teacher')">বিনামূল্যে নিবন্ধন করুন</button>
+      </div>
+      <p style="font-size:12px;color:#748174;margin:15px 4px 0">নিরাপত্তা: পরিচয় যাচাই, অভিযোগ ব্যবস্থাপনা ও পেমেন্ট নীতিমালা পর্যায়ক্রমে চালু করা হবে। কোনো পেমেন্ট করার আগে ওয়েবসাইটের প্রকাশিত নিয়ম ভালোভাবে পড়ে নিন।</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <div><div class="footer-brand">অনলাইন টিউশন</div><p class="footer-muted">বাংলাদেশের শিক্ষক, শিক্ষার্থী ও অভিভাবকদের সংযুক্ত করার একটি টিউশন মার্কেটপ্লেস।</p></div>
+      <div class="footer-links"><a href="#how">কীভাবে কাজ করে</a><a href="#benefits">সুবিধা</a><a href="#safety">নিরাপত্তা</a><a href="mailto:contact@example.com">যোগাযোগ</a></div>
+    </div>
+    <div class="copyright">© <span id="year"></span> Online Tuition. সর্বস্বত্ব সংরক্ষিত।</div>
+  </div>
+</footer>
+
+<div class="modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal()" aria-label="বন্ধ করুন">×</button>
+    <h2 id="modalTitle">অ্যাকাউন্ট তৈরি করুন</h2>
+    <p id="modalDescription">আপনার তথ্য দিয়ে শুরু করুন।</p>
+    <form id="authForm" onsubmit="demoAuth(event)">
+      <div class="form-field" id="roleField"><label for="role">আপনি কে?</label><select id="role"><option value="parent">অভিভাবক</option><option value="teacher">শিক্ষক</option></select></div>
+      <div class="form-field" id="nameField"><label for="fullName">আপনার নাম</label><input id="fullName" type="text" placeholder="সম্পূর্ণ নাম" autocomplete="name"></div>
+      <div class="form-field"><label for="email">ইমেইল</label><input id="email" type="email" placeholder="name@example.com" autocomplete="email" required></div>
+      <div class="form-field"><label for="password">পাসওয়ার্ড</label><input id="password" type="password" placeholder="কমপক্ষে ৬ অক্ষর" minlength="6" autocomplete="current-password" required></div>
+      <button class="btn btn-primary form-submit" id="submitLabel" type="submit">নিবন্ধন করুন</button>
+    </form>
+    <div class="notice" id="authNotice">এটি প্রাথমিক ডিজাইন। Supabase Authentication সংযুক্ত করার পর নিবন্ধন ও লগইন কার্যকর হবে।</div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  let currentMode = 'register';
+  function openModal(mode, role) {
+    currentMode = mode;
+    document.getElementById('authModal').classList.add('show');
+    document.getElementById('modalTitle').textContent = mode === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন';
+    document.getElementById('modalDescription').textContent = mode === 'login' ? 'আপনার ইমেইল ও পাসওয়ার্ড দিন।' : 'শিক্ষক অথবা অভিভাবক হিসেবে নিবন্ধন করুন।';
+    document.getElementById('nameField').style.display = mode === 'login' ? 'none' : 'block';
+    document.getElementById('roleField').style.display = mode === 'login' ? 'none' : 'block';
+    document.getElementById('submitLabel').textContent = mode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
+    if (role) document.getElementById('role').value = role;
+  }
+  function closeModal(){document.getElementById('authModal').classList.remove('show')}
+  function demoAuth(event) {
+    event.preventDefault();
+    alert('এই ফর্মটি এখনো Supabase-এর সঙ্গে যুক্ত হয়নি। পরবর্তী ধাপে আমরা নিরাপদ Authentication সংযুক্ত করব।');
+  }
+  function searchNotice(event) {
+    event.preventDefault();
+    alert('টিউশন সার্চ এখনো Database-এর সঙ্গে যুক্ত হয়নি। পরবর্তী ধাপে প্রকৃত সার্চ চালু করব।');
+  }
+</script>
+</body>
+</html>
