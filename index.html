@@ -142,28 +142,122 @@
   </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  const SUPABASE_URL = 'https://lvvmnmlpzfviryyyhour.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_9wZJcHgeGZgVAmyZ6Z5-Pw_5RpPNmPK';
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
   let currentMode = 'register';
+
+  function setNotice(message, color) {
+    const notice = document.getElementById('authNotice');
+    notice.textContent = message;
+    notice.style.color = color || '#637083';
+  }
+
   function openModal(mode, role) {
     currentMode = mode;
+
     document.getElementById('authModal').classList.add('show');
-    document.getElementById('modalTitle').textContent = mode === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন';
-    document.getElementById('modalDescription').textContent = mode === 'login' ? 'আপনার ইমেইল ও পাসওয়ার্ড দিন।' : 'শিক্ষক অথবা অভিভাবক হিসেবে নিবন্ধন করুন।';
-    document.getElementById('nameField').style.display = mode === 'login' ? 'none' : 'block';
-    document.getElementById('roleField').style.display = mode === 'login' ? 'none' : 'block';
-    document.getElementById('submitLabel').textContent = mode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
+    document.getElementById('modalTitle').textContent =
+      mode === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন';
+
+    document.getElementById('modalDescription').textContent =
+      mode === 'login'
+        ? 'আপনার ইমেইল ও পাসওয়ার্ড দিন।'
+        : 'শিক্ষক অথবা অভিভাবক হিসেবে নিবন্ধন করুন।';
+
+    document.getElementById('nameField').style.display =
+      mode === 'login' ? 'none' : 'block';
+
+    document.getElementById('roleField').style.display =
+      mode === 'login' ? 'none' : 'block';
+
+    document.getElementById('submitLabel').textContent =
+      mode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
+
+    document.getElementById('password').autocomplete =
+      mode === 'login' ? 'current-password' : 'new-password';
+
     if (role) document.getElementById('role').value = role;
+
+    setNotice('আপনার তথ্য দিয়ে শুরু করুন।');
   }
-  function closeModal(){document.getElementById('authModal').classList.remove('show')}
-  function demoAuth(event) {
+
+  function closeModal() {
+    document.getElementById('authModal').classList.remove('show');
+  }
+
+  async function demoAuth(event) {
     event.preventDefault();
-    alert('এই ফর্মটি এখনো Supabase-এর সঙ্গে যুক্ত হয়নি। পরবর্তী ধাপে আমরা নিরাপদ Authentication সংযুক্ত করব।');
+
+    const button = document.getElementById('submitLabel');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    button.disabled = true;
+    button.textContent = 'অপেক্ষা করুন...';
+
+    try {
+      if (currentMode === 'register') {
+        const fullName = document.getElementById('fullName').value.trim();
+        const role = document.getElementById('role').value;
+
+        if (!fullName) {
+          throw new Error('আপনার নাম লিখুন।');
+        }
+
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              role: role
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+          setNotice('অভিনন্দন! আপনার অ্যাকাউন্ট তৈরি হয়েছে এবং লগইন সম্পন্ন হয়েছে।', 'green');
+        } else {
+          setNotice('নিবন্ধন সফল! আপনার ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্ট যাচাই করুন।', 'green');
+        }
+
+      } else {
+        const { data, error } =
+          await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+
+        if (error) throw error;
+
+        setNotice('সফলভাবে লগইন হয়েছে!', 'green');
+      }
+
+    } catch (error) {
+      setNotice('সমস্যা হয়েছে: ' + error.message, '#c62828');
+    } finally {
+      button.disabled = false;
+      button.textContent =
+        currentMode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
+    }
   }
+
   function searchNotice(event) {
     event.preventDefault();
-    alert('টিউশন সার্চ এখনো Database-এর সঙ্গে যুক্ত হয়নি। পরবর্তী ধাপে প্রকৃত সার্চ চালু করব।');
+    alert('টিউশন সার্চ এখনো চালু করা হয়নি।');
   }
 </script>
-</body>
-</html>
+  
