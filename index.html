@@ -321,8 +321,10 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     if (r.error) return loadErr(c);
     if (!r.data.length) return emptyIn(c, EMPTY.apps);
     c.innerHTML = "";
+    var TI = await teacherInfo(r.data.map(function (x) { return x.teacher_id; }));
     r.data.forEach(function (a) {
-      item(c, m[a.post_id] || "টিউশন", st(a.status), ["প্রত্যাশিত বেতন: " + tk(a.expected_fee), a.message, "আবেদনের তারিখ: " + dt(a.created_at)]);
+      var ti = TI[a.teacher_id] || [];
+      item(c, m[a.post_id] || "টিউশন", st(a.status), ["প্রত্যাশিত বেতন: " + tk(a.expected_fee), a.message, ti[0], ti[1], "আবেদনের তারিখ: " + dt(a.created_at)]);
     });
     c.appendChild(el("p", "note", "শিক্ষক নির্বাচনের কাজ বর্তমানে প্ল্যাটফর্ম কর্তৃপক্ষের মাধ্যমে সম্পন্ন হয়।"));
   };
@@ -597,6 +599,66 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
       if (u.role !== "admin" && u.verification_status !== "verified") act(d, "যাচাই করুন", "", function () { return setVer(u, "verified"); });
       if (u.role !== "admin" && u.verification_status === "pending") act(d, "প্রত্যাখ্যান", "ghost", function () { return setVer(u, "rejected"); });
     });
+  };
+
+  /* ---- শিক্ষকের যোগ্যতা ও অভিজ্ঞতা ---- */
+  function bn(n) { return Number(n).toLocaleString("bn-BD", { useGrouping: false }); }
+  function noTable(c, e) {
+    c.innerHTML = "";
+    var miss = e && (e.code === "42P01" || e.code === "PGRST205" || /does not exist|schema cache/i.test(e.message || ""));
+    c.appendChild(el("div", "msg er", miss ? "এই সুবিধা চালু করতে প্রথমে ডাটাবেসে নতুন টেবিল তৈরি করতে হবে।" : "তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।"));
+  }
+  async function teacherInfo(ids) {
+    var o = {}; if (!ids.length) return o;
+    var q = await db.from("teacher_qualifications").select("teacher_id,degree,institution").in("teacher_id", ids);
+    var e = await db.from("teacher_experience").select("*").in("teacher_id", ids);
+    ids.forEach(function (id) {
+      var qs = (q.data || []).filter(function (x) { return x.teacher_id === id; }).map(function (x) { return x.degree + " (" + x.institution + ")"; }).join("، ");
+      var ex = (e.data || []).filter(function (x) { return x.teacher_id === id; })[0];
+      o[id] = [qs ? "যোগ্যতা: " + qs : "", ex ? "অভিজ্ঞতা: " + bn(ex.experience_years || 0) + " বছর" + (ex.subjects && ex.subjects.length ? " • বিষয়: " + ex.subjects.join("، ") : "") : ""];
+    });
+    return o;
+  }
+  LOAD.edu = async function (c) {
+    var r = await db.from("teacher_qualifications").select("*").eq("teacher_id", user.id).order("passing_year", { ascending: false });
+    if (r.error) return noTable(c, r.error);
+    c.innerHTML = "";
+    if (!r.data.length) c.appendChild(el("div", "empty", "এখনো কোনো শিক্ষাগত যোগ্যতা যোগ করা হয়নি।"));
+    r.data.forEach(function (q) {
+      var d = item(c, q.degree, q.passing_year ? bn(q.passing_year) : "", [q.institution, q.subject ? "বিষয়: " + q.subject : "", q.result ? "ফলাফল: " + q.result : ""]);
+      act(d, "মুছুন", "ghost", async function () {
+        if (!confirm("এই তথ্য মুছে ফেলবেন?")) return;
+        var x = await db.from("teacher_qualifications").delete().eq("id", q.id); if (x.error) throw x.error;
+        toast("মুছে ফেলা হয়েছে।"); LOAD.edu(c);
+      });
+    });
+    c.insertAdjacentHTML("beforeend", '<h3 style="margin-top:18px">নতুন যোগ্যতা যোগ করুন</h3><label>ডিগ্রি / পরীক্ষার নাম</label><input id="eqDeg" placeholder="যেমন: স্নাতক (সম্মান)"><label>প্রতিষ্ঠান</label><input id="eqInst"><label>বিষয়</label><input id="eqSub"><label>পাসের সাল</label><input id="eqYear" type="number" min="1950" max="2100"><label>ফলাফল</label><input id="eqRes" placeholder="যেমন: জিপিএ ৫.০০"><div id="eqMsg"></div><button class="btn" id="eqBtn" style="margin-top:14px">সংরক্ষণ করুন</button>');
+    $("eqBtn").onclick = async function () {
+      var g = function (i) { return $(i).value.trim(); }, y = g("eqYear") ? Number(g("eqYear")) : null;
+      if (!g("eqDeg")) return msg("eqMsg", "ডিগ্রি বা পরীক্ষার নাম লিখুন।");
+      if (!g("eqInst")) return msg("eqMsg", "প্রতিষ্ঠানের নাম লিখুন।");
+      if (y !== null && !(y >= 1950 && y <= 2100)) return msg("eqMsg", "সঠিক সাল লিখুন।");
+      $("eqBtn").disabled = true;
+      var x = await db.from("teacher_qualifications").insert({ teacher_id: user.id, degree: g("eqDeg"), institution: g("eqInst"), subject: g("eqSub"), passing_year: y, result: g("eqRes") });
+      if (x.error) { $("eqBtn").disabled = false; return msg("eqMsg", "সংরক্ষণ করা যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।"); }
+      toast("যোগ্যতা সংরক্ষণ করা হয়েছে।"); LOAD.edu(c);
+    };
+  };
+  LOAD.exp = async function (c) {
+    var r = await db.from("teacher_experience").select("*").eq("teacher_id", user.id).maybeSingle();
+    if (r.error) return noTable(c, r.error);
+    var e = r.data || {}; c.innerHTML = "";
+    c.insertAdjacentHTML("beforeend", '<label>যে বিষয়গুলো পড়াতে পারেন (কমা দিয়ে লিখুন)</label><input id="exSub" placeholder="গণিত, পদার্থবিজ্ঞান"><label>শিক্ষকতার অভিজ্ঞতা (বছর)</label><input id="exYrs" type="number" min="0" max="60"><label>নিজের সম্পর্কে ও অভিজ্ঞতার বিবরণ</label><textarea id="exBio" rows="4" placeholder="আপনার পাঠদান পদ্ধতি ও অভিজ্ঞতা লিখুন"></textarea><div id="exMsg"></div><button class="btn" id="exBtn" style="margin-top:14px">সংরক্ষণ করুন</button>');
+    $("exSub").value = (e.subjects || []).join("، "); $("exYrs").value = e.experience_years || 0; $("exBio").value = e.bio || "";
+    $("exBtn").onclick = async function () {
+      var yrs = Number($("exYrs").value);
+      if (!(yrs >= 0 && yrs <= 60)) return msg("exMsg", "অভিজ্ঞতা ০ থেকে ৬০ বছরের মধ্যে লিখুন।");
+      $("exBtn").disabled = true;
+      var x = await db.from("teacher_experience").upsert({ teacher_id: user.id, subjects: $("exSub").value.split(/[,،]/).map(function (s) { return s.trim(); }).filter(Boolean), experience_years: yrs, bio: $("exBio").value.trim(), updated_at: new Date().toISOString() }, { onConflict: "teacher_id" });
+      $("exBtn").disabled = false;
+      if (x.error) return msg("exMsg", "সংরক্ষণ করা যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।");
+      msg("exMsg", "তথ্য সংরক্ষণ করা হয়েছে।", true);
+    };
   };
 
   function render(key) {
