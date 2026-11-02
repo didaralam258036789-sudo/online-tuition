@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="বাংলাদেশের সকল জেলায় অনলাইন ও অফলাইন টিউশন খুঁজুন এবং শিক্ষক হিসেবে যুক্ত হোন।">
-  <title>অনলাইন টিউশন | Online Tuition Bangladesh</title>
+  <title>অ[hidden]{display:none!importantঅনলাইন টিউশন | Online Tuition Bangladesh</title>
   <style> /* Dashboard Design */
 .dashboard{padding:35px 0 60px;min-height:75vh;background:#f7faf8}
 .dash-head{background:#176b52;color:white;padding:25px;border-radius:18px;margin-bottom:22px}
@@ -60,7 +60,20 @@
     </div>
   </div>
 </header>
+</header>
 
+<div class="container dashboard" id="userDashboard" hidden>
+  <div class="dash-head">
+    <h2 id="dashTitle">আপনার ড্যাশবোর্ড</h2>
+    <p id="dashWelcome">স্বাগতম!</p>
+    <button class="btn btn-light" onclick="logoutUser()" style="margin-top:15px">
+      লগআউট
+    </button>
+  </div>
+  <div class="dash-grid" id="dashGrid"></div>
+</div>
+
+<main>
 <main>
   <section class="hero">
     <div class="container hero-grid">
@@ -153,122 +166,195 @@
   </div>
 </div>
 
+document.getElementById('year').textContent = new Date().getFullYear();
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  document.getElementById('year').textContent = new Date().getFullYear();
+const SUPABASE_URL = 'https://lvvmnmlpzfviryyyhour.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9wZJcHgeGZgVAmyZ6Z5-Pw_5RpPNmPK';
 
-  const SUPABASE_URL = 'https://lvvmnmlpzfviryyyhour.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_9wZJcHgeGZgVAmyZ6Z5-Pw_5RpPNmPK';
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+let currentMode = 'register';
 
-  let currentMode = 'register';
+function setNotice(message, color) {
+  const notice = document.getElementById('authNotice');
+  notice.textContent = message;
+  notice.style.color = color || '#637083';
+}
 
-  function setNotice(message, color) {
-    const notice = document.getElementById('authNotice');
-    notice.textContent = message;
-    notice.style.color = color || '#637083';
+function openModal(mode, role) {
+  currentMode = mode;
+
+  document.getElementById('authModal').classList.add('show');
+  document.getElementById('modalTitle').textContent =
+    mode === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন';
+
+  document.getElementById('modalDescription').textContent =
+    mode === 'login'
+      ? 'আপনার ইমেইল ও পাসওয়ার্ড দিন।'
+      : 'শিক্ষক অথবা অভিভাবক হিসেবে নিবন্ধন করুন।';
+
+  document.getElementById('nameField').style.display =
+    mode === 'login' ? 'none' : 'block';
+
+  document.getElementById('roleField').style.display =
+    mode === 'login' ? 'none' : 'block';
+
+  document.getElementById('submitLabel').textContent =
+    mode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
+
+  document.getElementById('password').autocomplete =
+    mode === 'login' ? 'current-password' : 'new-password';
+
+  if (role) document.getElementById('role').value = role;
+
+  setNotice('আপনার তথ্য দিয়ে শুরু করুন।');
+}
+
+function closeModal() {
+  document.getElementById('authModal').classList.remove('show');
+}
+
+function showDashboard(user) {
+  const role = user.user_metadata?.role;
+  const name = user.user_metadata?.full_name || 'ব্যবহারকারী';
+
+  if (role !== 'parent' && role !== 'teacher') {
+    setNotice('আপনার অ্যাকাউন্টের ধরন পাওয়া যায়নি।', '#c62828');
+    return;
   }
 
-  function openModal(mode, role) {
-    currentMode = mode;
+  document.querySelector('main').hidden = true;
+  document.querySelector('footer').hidden = true;
+  document.getElementById('authModal').classList.remove('show');
 
-    document.getElementById('authModal').classList.add('show');
-    document.getElementById('modalTitle').textContent =
-      mode === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন';
+  const dashboard = document.getElementById('userDashboard');
+  dashboard.hidden = false;
 
-    document.getElementById('modalDescription').textContent =
-      mode === 'login'
-        ? 'আপনার ইমেইল ও পাসওয়ার্ড দিন।'
-        : 'শিক্ষক অথবা অভিভাবক হিসেবে নিবন্ধন করুন।';
+  document.getElementById('dashTitle').textContent =
+    role === 'parent' ? 'অভিভাবক ড্যাশবোর্ড' : 'শিক্ষক ড্যাশবোর্ড';
 
-    document.getElementById('nameField').style.display =
-      mode === 'login' ? 'none' : 'block';
+  document.getElementById('dashWelcome').textContent =
+    'স্বাগতম, ' + name + '।';
 
-    document.getElementById('roleField').style.display =
-      mode === 'login' ? 'none' : 'block';
+  const parentCards = [
+    ['📝', 'নতুন টিউশন পোস্ট', 'আপনার সন্তানের জন্য টিউশন তৈরি করুন।'],
+    ['📋', 'আমার টিউশন পোস্ট', 'আপনার প্রকাশিত টিউশন দেখুন।'],
+    ['👩‍🏫', 'শিক্ষকের আবেদন', 'আবেদনকারী শিক্ষকদের তালিকা দেখুন।'],
+    ['⭐', 'নির্বাচিত শিক্ষক', 'আপনার পছন্দের শিক্ষক দেখুন।']
+  ];
 
-    document.getElementById('submitLabel').textContent =
-      mode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
+  const teacherCards = [
+    ['🔎', 'টিউশন খুঁজুন', 'আপনার উপযুক্ত টিউশন খুঁজুন।'],
+    ['📨', 'আমার আবেদন', 'আপনার পাঠানো আবেদন দেখুন।'],
+    ['👤', 'আমার প্রোফাইল', 'আপনার শিক্ষাগত যোগ্যতা ও তথ্য।'],
+    ['💰', 'আয়ের হিসাব', 'আপনার টিউশন আয়ের তথ্য।']
+  ];
 
-    document.getElementById('password').autocomplete =
-      mode === 'login' ? 'current-password' : 'new-password';
+  const cards = role === 'parent' ? parentCards : teacherCards;
 
-    if (role) document.getElementById('role').value = role;
+  document.getElementById('dashGrid').innerHTML = cards.map(card => `
+    <div class="dash-card">
+      <div class="emoji">${card[0]}</div>
+      <h3>${card[1]}</h3>
+      <p>${card[2]}</p>
+      <span class="dash-status">শিগগিরই চালু হবে</span>
+    </div>
+  `).join('');
+}
 
-    setNotice('আপনার তথ্য দিয়ে শুরু করুন।');
+async function logoutUser() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert('লগআউট করা যায়নি: ' + error.message);
+    return;
   }
 
-  function closeModal() {
-    document.getElementById('authModal').classList.remove('show');
-  }
+  document.getElementById('userDashboard').hidden = true;
+  document.querySelector('main').hidden = false;
+  document.querySelector('footer').hidden = false;
+}
 
-  async function demoAuth(event) {
-    event.preventDefault();
+async function demoAuth(event) {
+  event.preventDefault();
 
-    const button = document.getElementById('submitLabel');
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+  const button = document.getElementById('submitLabel');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
 
-    button.disabled = true;
-    button.textContent = 'অপেক্ষা করুন...';
+  button.disabled = true;
+  button.textContent = 'অপেক্ষা করুন...';
 
-    try {
-      if (currentMode === 'register') {
-        const fullName = document.getElementById('fullName').value.trim();
-        const role = document.getElementById('role').value;
+  try {
+    if (currentMode === 'register') {
+      const fullName = document.getElementById('fullName').value.trim();
+      const role = document.getElementById('role').value;
 
-        if (!fullName) {
-          throw new Error('আপনার নাম লিখুন।');
-        }
+      if (!fullName) throw new Error('আপনার নাম লিখুন।');
 
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: role
-            }
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role
           }
-        });
-
-        if (error) throw error;
-
-        if (data.session) {
-          setNotice('অভিনন্দন! আপনার অ্যাকাউন্ট তৈরি হয়েছে এবং লগইন সম্পন্ন হয়েছে।', 'green');
-        } else {
-          setNotice('নিবন্ধন সফল! আপনার ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্ট যাচাই করুন।', 'green');
         }
+      });
 
+      if (error) throw error;
+
+      if (data.session && data.user) {
+        showDashboard(data.user);
       } else {
-        const { data, error } =
-          await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
-
-        if (error) throw error;
-
-        setNotice('সফলভাবে লগইন হয়েছে!', 'green');
+        setNotice(
+          'নিবন্ধন সফল! ইমেইলে পাঠানো যাচাইকরণ লিংকে ক্লিক করুন।',
+          'green'
+        );
       }
 
-    } catch (error) {
-      setNotice('সমস্যা হয়েছে: ' + error.message, '#c62828');
-    } finally {
-      button.disabled = false;
-      button.textContent =
-        currentMode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
-    }
-  }
+    } else {
+      const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
 
-  function searchNotice(event) {
-    event.preventDefault();
-    alert('টিউশন সার্চ এখনো চালু করা হয়নি।');
+      if (error) throw error;
+
+      showDashboard(data.user);
+    }
+
+  } catch (error) {
+    setNotice('সমস্যা হয়েছে: ' + error.message, '#c62828');
+  } finally {
+    button.disabled = false;
+    button.textContent =
+      currentMode === 'login' ? 'লগইন করুন' : 'নিবন্ধন করুন';
   }
-</script>
+}
+
+function searchNotice(event) {
+  event.preventDefault();
+  alert('টিউশন সার্চ পরবর্তী ধাপে চালু করা হবে।');
+}
+
+// আগে থেকে লগইন করা থাকলে ড্যাশবোর্ড দেখাবে
+supabaseClient.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    showDashboard(data.session.user);
+  }
+});
+
+// লগইন ও লগআউটের অবস্থা পর্যবেক্ষণ
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    showDashboard(session.user);
+  }
+});
   
+
