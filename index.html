@@ -144,6 +144,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     <label for="lPass">পাসওয়ার্ড</label><input id="lPass" type="password" autocomplete="current-password" placeholder="পাসওয়ার্ড লিখুন">
     <div id="lMsg"></div>
     <button class="btn full" id="lBtn" style="margin-top:14px">লগইন করুন</button>
+    <div class="sw"><a data-open="forgot">পাসওয়ার্ড ভুলে গেছেন?</a></div>
     <div class="sw">অ্যাকাউন্ট নেই? <a data-open="register">নিবন্ধন করুন</a></div>
   </div>
   <div id="regForm" class="hidden">
@@ -156,6 +157,21 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     <div id="rMsg"></div>
     <button class="btn full" id="rBtn" style="margin-top:14px">নিবন্ধন করুন</button>
     <div class="sw">আগে থেকেই অ্যাকাউন্ট আছে? <a data-open="login">লগইন করুন</a></div>
+  </div>
+  <div id="fgForm" class="hidden">
+    <h2>পাসওয়ার্ড ভুলে গেছেন?</h2>
+    <p class="note">আপনার ইমেইল দিন। পাসওয়ার্ড বদলানোর লিংক পাঠানো হবে।</p>
+    <label for="fgEmail">ইমেইল</label><input id="fgEmail" type="email" autocomplete="email" placeholder="আপনার ইমেইল লিখুন">
+    <div id="fgMsg"></div>
+    <button class="btn full" id="fgBtn" style="margin-top:14px">লিংক পাঠান</button>
+    <div class="sw"><a data-open="login">লগইনে ফিরে যান</a></div>
+  </div>
+  <div id="rsForm" class="hidden">
+    <h2>নতুন পাসওয়ার্ড দিন</h2>
+    <label for="rsPass">নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)</label><input id="rsPass" type="password" autocomplete="new-password" placeholder="নতুন পাসওয়ার্ড">
+    <label for="rsPass2">পাসওয়ার্ড আবার লিখুন</label><input id="rsPass2" type="password" autocomplete="new-password" placeholder="আবার লিখুন">
+    <div id="rsMsg"></div>
+    <button class="btn full" id="rsBtn" style="margin-top:14px">পাসওয়ার্ড সংরক্ষণ করুন</button>
   </div>
   <button class="btn ghost full" id="closeModal" style="margin-top:12px">বাতিল</button>
 </div></div>
@@ -201,6 +217,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
   };
 
   var user = null, role = "parent", current = "overview";
+  var recovering = /type=recovery/.test(window.location.hash);
 
   function toast(t) {
     var d = document.createElement("div"); d.className = "toast"; d.textContent = t;
@@ -218,6 +235,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     var m = (e && e.message || "").toLowerCase();
     if (m.indexOf("invalid login") > -1) return "ইমেইল বা পাসওয়ার্ড সঠিক নয়।";
     if (m.indexOf("not confirmed") > -1) return "আপনার ইমেইল এখনো যাচাই করা হয়নি। ইনবক্স দেখে যাচাই করুন।";
+    if (m.indexOf("different from the old") > -1) return "নতুন পাসওয়ার্ড আগের পাসওয়ার্ডের মতো হতে পারবে না।";
     if (m.indexOf("already") > -1) return "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে। লগইন করুন।";
     if (m.indexOf("password") > -1) return "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।";
     if (m.indexOf("valid email") > -1 || m.indexOf("invalid email") > -1) return "সঠিক ইমেইল ঠিকানা দিন।";
@@ -229,9 +247,10 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
   /* ---- মডাল ---- */
   function openModal(which, r) {
     $("modal").classList.remove("hidden");
-    $("loginForm").classList.toggle("hidden", which !== "login");
-    $("regForm").classList.toggle("hidden", which !== "register");
-    msg("lMsg", ""); msg("rMsg", "");
+    var F = { login: "loginForm", register: "regForm", forgot: "fgForm", reset: "rsForm" };
+    Object.keys(F).forEach(function (k) { $(F[k]).classList.toggle("hidden", k !== which); });
+    msg("lMsg", ""); msg("rMsg", ""); msg("fgMsg", ""); msg("rsMsg", "");
+    $("closeModal").classList.toggle("hidden", which === "reset");
     if (r) $("rRole").value = r;
   }
   function closeModal() { $("modal").classList.add("hidden"); }
@@ -262,6 +281,32 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
       return msg("rMsg", "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে। লগইন করুন।");
     if (res.data && res.data.session) { closeModal(); return; }
     msg("rMsg", "নিবন্ধন সফল হয়েছে! আপনার ইমেইলে পাঠানো লিংকে ক্লিক করে ইমেইল যাচাই করুন, তারপর লগইন করুন।", true);
+  }
+  async function doForgot() {
+    var email = $("fgEmail").value.trim();
+    if (!email) return msg("fgMsg", "ইমেইল ঠিকানা দিন।");
+    $("fgBtn").disabled = true; msg("fgMsg", "অপেক্ষা করুন...", true);
+    var res = await db.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+    $("fgBtn").disabled = false;
+    if (res.error) return msg("fgMsg", bnError(res.error));
+    msg("fgMsg", "যদি এই ইমেইলে অ্যাকাউন্ট থাকে, তাহলে পাসওয়ার্ড বদলানোর লিংক পাঠানো হয়েছে। ইনবক্স ও স্প্যাম ফোল্ডার দেখুন।", true);
+  }
+  function finishRecovery() {
+    recovering = false; closeModal();
+    try { history.replaceState(null, "", window.location.pathname); } catch (e) {}
+    db.auth.getSession().then(function (r) {
+      if (r.data && r.data.session) enterApp(r.data.session.user); else show("home");
+    });
+  }
+  async function doReset() {
+    var a = $("rsPass").value, b = $("rsPass2").value;
+    if (a.length < 6) return msg("rsMsg", "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।");
+    if (a !== b) return msg("rsMsg", "দুটি পাসওয়ার্ড মিলছে না।");
+    $("rsBtn").disabled = true; msg("rsMsg", "অপেক্ষা করুন...", true);
+    var res = await db.auth.updateUser({ password: a });
+    $("rsBtn").disabled = false;
+    if (res.error) return msg("rsMsg", bnError(res.error));
+    toast("পাসওয়ার্ড সফলভাবে বদলানো হয়েছে।"); finishRecovery();
   }
   async function doLogout() {
     if (!confirm("আপনি কি লগআউট করতে চান?")) return;
@@ -675,6 +720,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     else emptyIn(card, EMPTY[key] || "কোনো তথ্য নেই।");
   }
   async function enterApp(u) {
+    if (recovering) return;
     if (user && user.id === u.id) return;
     user = u;
     var meta = u.user_metadata || {};
@@ -700,6 +746,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
       if (k) render(k.getAttribute("data-k"));
     });
     $("closeModal").onclick = closeModal;
+    $("fgBtn").onclick = doForgot; $("rsBtn").onclick = doReset;
     $("lBtn").onclick = doLogin; $("rBtn").onclick = doRegister;
     $("lPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
     $("sBtn").onclick = function () {
@@ -709,6 +756,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
 
     if (!window.supabase) { show("home"); toast("সার্ভারের সাথে সংযোগ করা যায়নি।"); return; }
     db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (recovering) { show("home"); openModal("reset"); }
 
     db.auth.onAuthStateChange(function (event, session) {
       setTimeout(function () {
