@@ -57,6 +57,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
 .kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:15px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:8px;z-index:99;font-size:14px}
 .item{border-bottom:1px solid var(--bd);padding:12px 0}.ih{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.badge{background:var(--pr2);color:var(--pr);padding:2px 10px;border-radius:99px;font-size:13px;white-space:nowrap}.item .note{margin-top:2px}
+.bw{display:flex;flex-direction:column;align-items:flex-start;margin:6px 0}.bw.me{align-items:flex-end}.bub{max-width:80%;padding:8px 12px;border-radius:12px;background:var(--pr2);white-space:pre-wrap;word-break:break-word}.bub.me{background:var(--pr);color:#fff}.bub.fl{background:rgba(192,57,43,.12);color:var(--er)}.bt{font-size:12px;color:var(--mu)}
 @media(max-width:760px){.dash{grid-template-columns:1fr}.side{display:flex;overflow-x:auto;gap:4px}.side button{white-space:nowrap;width:auto}.nav-links a.hl{display:none}}
 </style>
 </head>
@@ -201,7 +202,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
 
   var MENUS = {
     parent: [["overview","ড্যাশবোর্ড"],["newpost","নতুন টিউশন পোস্ট"],["myposts","আমার টিউশন পোস্ট"],["apps","শিক্ষকের আবেদন"],["selected","নির্বাচিত শিক্ষক"],["messages","বার্তা"],["payments","পেমেন্টের ইতিহাস"],["profile","আমার প্রোফাইল"],["logout","লগআউট"]],
-    admin: [["overview","ড্যাশবোর্ড"],["apost","পোস্ট অনুমোদন"],["aapps","আবেদন ও শিক্ষক নির্বাচন"],["acontracts","চুক্তি ও মাসিক বিল"],["ausers","ব্যবহারকারী"],["logout","লগআউট"]],
+    admin: [["overview","ড্যাশবোর্ড"],["apost","পোস্ট অনুমোদন"],["aapps","আবেদন ও শিক্ষক নির্বাচন"],["acontracts","চুক্তি ও মাসিক বিল"],["ausers","ব্যবহারকারী"],["aviol","সন্দেহজনক বার্তা"],["logout","লগআউট"]],
     teacher: [["overview","ড্যাশবোর্ড"],["find","টিউশন খুঁজুন"],["myapps","আমার আবেদন"],["profile","আমার শিক্ষক প্রোফাইল"],["edu","শিক্ষাগত যোগ্যতা"],["exp","অভিজ্ঞতা ও বিষয়"],["earn","মাসিক আয়"],["messages","বার্তা"],["logout","লগআউট"]]
   };
   var EMPTY = {
@@ -367,9 +368,10 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     if (!r.data.length) return emptyIn(c, EMPTY.apps);
     c.innerHTML = "";
     var TI = await teacherInfo(r.data.map(function (x) { return x.teacher_id; }));
+    var PN = await partnerNames(r.data.map(function (x) { return x.teacher_id; }));
     r.data.forEach(function (a) {
       var ti = TI[a.teacher_id] || [];
-      item(c, m[a.post_id] || "টিউশন", st(a.status), ["প্রত্যাশিত বেতন: " + tk(a.expected_fee), a.message, ti[0], ti[1], "আবেদনের তারিখ: " + dt(a.created_at)]);
+      item(c, m[a.post_id] || "টিউশন", st(a.status), [PN[a.teacher_id] ? "শিক্ষক: " + PN[a.teacher_id] : "", "প্রত্যাশিত বেতন: " + tk(a.expected_fee), a.message, ti[0], ti[1], "আবেদনের তারিখ: " + dt(a.created_at)]);
     });
     c.appendChild(el("p", "note", "শিক্ষক নির্বাচনের কাজ বর্তমানে প্ল্যাটফর্ম কর্তৃপক্ষের মাধ্যমে সম্পন্ন হয়।"));
   };
@@ -380,7 +382,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     c.innerHTML = "";
     r.data.forEach(function (k) { item(c, "টিউশন চুক্তি", st(k.status), ["মাসিক ফি: " + tk(k.monthly_fee), "শুরুর তারিখ: " + dt(k.start_date)]); });
   };
-  LOAD.messages = async function (c) {
+  LOAD.notif = async function (c) {
     var r = await db.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
     if (r.error) return loadErr(c);
     if (!r.data.length) return emptyIn(c, EMPTY.messages);
@@ -458,11 +460,12 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
       out.innerHTML = "";
       if (!m) return out.appendChild(el("div", "msg er", "আপনার বার্তা লিখুন।"));
       if (!(fee > 0)) return out.appendChild(el("div", "msg er", "সঠিক বেতন লিখুন।"));
+      if (hasContact(m)) return out.appendChild(el("div", "msg er", WARN));
       s.disabled = true;
       var r = await db.from("applications").insert({ post_id: p.id, teacher_id: user.id, message: m, expected_fee: fee, status: "pending" });
       if (r.error) {
         s.disabled = false;
-        var t = r.error.code === "23505" ? "আপনি আগেই এই টিউশনে আবেদন করেছেন।" : "আবেদন জমা দেওয়া যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।";
+        var t = blocked(r.error) ? WARN : r.error.code === "23505" ? "আপনি আগেই এই টিউশনে আবেদন করেছেন।" : "আবেদন জমা দেওয়া যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।";
         return out.appendChild(el("div", "msg er", t));
       }
       toast("আবেদন সফলভাবে জমা হয়েছে।"); LOAD.find(c);
@@ -491,6 +494,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
       if (!v("npClass")) return msg("npMsg", "ক্লাস নির্বাচন করুন।");
       if (!(fee > 0)) return msg("npMsg", "সঠিক মাসিক বেতন লিখুন।");
       if (!(days >= 1 && days <= 7)) return msg("npMsg", "সপ্তাহে ১ থেকে ৭ দিনের মধ্যে লিখুন।");
+      if (["npTitle", "npDesc", "npArea", "npUp"].some(function (i) { return hasContact($(i).value); })) return msg("npMsg", WARN);
       $("npBtn").disabled = true; msg("npMsg", "অপেক্ষা করুন...", true);
       var r = await db.from("tuition_posts").insert({
         parent_id: user.id, title: v("npTitle"), description: v("npDesc"), district: v("npDist"), upazila: v("npUp"), area: v("npArea"),
@@ -498,6 +502,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
         medium: v("npMed"), tuition_type: v("npType"), preferred_teacher_gender: v("npGen"), monthly_fee: fee, days_per_week: days, status: "pending_review"
       });
       $("npBtn").disabled = false;
+      if (r.error && blocked(r.error)) return msg("npMsg", WARN);
       if (r.error) return msg("npMsg", "পোস্ট জমা দেওয়া যায়নি। আপনার অ্যাকাউন্ট অভিভাবক হিসেবে নিবন্ধিত কিনা দেখুন।");
       toast("পোস্ট জমা হয়েছে। অনুমোদনের পর প্রকাশিত হবে।"); render("myposts");
     };
@@ -516,7 +521,9 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     $("pfBtn").onclick = async function () {
       var n = $("pfName").value.trim();
       if (!n) return msg("pMsg", "নাম খালি রাখা যাবে না।");
+      if (hasContact(n) || hasContact($("pfUp").value)) return msg("pMsg", WARN);
       var u = await db.from("profiles").update({ full_name: n, phone: $("pfPhone").value.trim(), district: $("pfDist").value, upazila: $("pfUp").value.trim() }).eq("id", user.id).select();
+      if (u.error && blocked(u.error)) return msg("pMsg", WARN);
       if (u.error || !u.data || !u.data.length) return msg("pMsg", "প্রোফাইল সংরক্ষণ করা যায়নি। প্রোফাইল হালনাগাদের অনুমতি এখনো চালু করা হয়নি।");
       displayName = n; $("who").textContent = n + " (" + roleBn() + ")"; msg("pMsg", "প্রোফাইল সংরক্ষণ করা হয়েছে।", true);
     };
@@ -683,9 +690,10 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
       if (!g("eqDeg")) return msg("eqMsg", "ডিগ্রি বা পরীক্ষার নাম লিখুন।");
       if (!g("eqInst")) return msg("eqMsg", "প্রতিষ্ঠানের নাম লিখুন।");
       if (y !== null && !(y >= 1950 && y <= 2100)) return msg("eqMsg", "সঠিক সাল লিখুন।");
+      if (["eqDeg", "eqInst", "eqSub", "eqRes"].some(function (i) { return hasContact($(i).value); })) return msg("eqMsg", WARN);
       $("eqBtn").disabled = true;
       var x = await db.from("teacher_qualifications").insert({ teacher_id: user.id, degree: g("eqDeg"), institution: g("eqInst"), subject: g("eqSub"), passing_year: y, result: g("eqRes") });
-      if (x.error) { $("eqBtn").disabled = false; return msg("eqMsg", "সংরক্ষণ করা যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।"); }
+      if (x.error) { $("eqBtn").disabled = false; if (blocked(x.error)) return msg("eqMsg", WARN); return msg("eqMsg", "সংরক্ষণ করা যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।"); }
       toast("যোগ্যতা সংরক্ষণ করা হয়েছে।"); LOAD.edu(c);
     };
   };
@@ -698,15 +706,126 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:26px 0;text
     $("exBtn").onclick = async function () {
       var yrs = Number($("exYrs").value);
       if (!(yrs >= 0 && yrs <= 60)) return msg("exMsg", "অভিজ্ঞতা ০ থেকে ৬০ বছরের মধ্যে লিখুন।");
+      if (hasContact($("exSub").value) || hasContact($("exBio").value)) return msg("exMsg", WARN);
       $("exBtn").disabled = true;
       var x = await db.from("teacher_experience").upsert({ teacher_id: user.id, subjects: $("exSub").value.split(/[,،]/).map(function (s) { return s.trim(); }).filter(Boolean), experience_years: yrs, bio: $("exBio").value.trim(), updated_at: new Date().toISOString() }, { onConflict: "teacher_id" });
       $("exBtn").disabled = false;
+      if (x.error && blocked(x.error)) return msg("exMsg", WARN);
       if (x.error) return msg("exMsg", "সংরক্ষণ করা যায়নি। আপনার অ্যাকাউন্ট শিক্ষক হিসেবে নিবন্ধিত কিনা দেখুন।");
       msg("exMsg", "তথ্য সংরক্ষণ করা হয়েছে।", true);
     };
   };
 
+  /* ---- যোগাযোগের তথ্য আটকানো ও চ্যাট ---- */
+  var WARN = "যোগাযোগের তথ্য (ফোন নম্বর, ইমেইল, সামাজিক মাধ্যম বা লিংক) দেওয়া নিষিদ্ধ। সব যোগাযোগ প্ল্যাটফর্মের ভেতরেই করুন।";
+  var RULE = "সতর্কতা: ফোন নম্বর, ইমেইল, সামাজিক মাধ্যম বা লিংক শেয়ার করা এবং প্ল্যাটফর্মের বাইরে যোগাযোগ বা লেনদেন নিষিদ্ধ। নিয়ম ভাঙার চেষ্টা রেকর্ড করা হয় এবং ব্যবস্থা নেওয়া হতে পারে।";
+  var DW = "zero|one|two|three|four|five|six|seven|eight|nine|শূন্য|জিরো|ওয়ান|টু|থ্রি|ফোর|ফাইভ|সিক্স|সেভেন|এইট|নাইন|এক|দুই|তিন|চার|পাঁচ|ছয়|সাত|আট|নয়";
+  var KW = /(whatsapp|হোয়াটস|ওয়াটস|\bimo\b|ইমোতে|ইমো নম্বর|ইমো নাম্বার|telegram|টেলিগ্রাম|messenger|মেসেঞ্জার|facebook|ফেসবুক|fb\.com|viber|ভাইবার|skype|স্কাইপ|wa\.me|t\.me|https?:|www\.|\.com|\.net|\.org|gmail|yahoo|hotmail|outlook|জিমেইল|ইয়াহু|বিকাশ|bkash|nagad|ফোন নম্বর|ফোন নাম্বার|মোবাইল নম্বর|মোবাইল নাম্বার|ইনবক্স|\binbox\b|call me|কল করুন|কল দিন)/;
+  var DWR = new RegExp("((?:" + DW + ")[\\s.,-]*){7,}");
+  function hasContact(t) {
+    var x = String(t || "").toLowerCase().replace(/[০-৯]/g, function (d) { return "০১২৩৪৫৬৭৮৯".indexOf(d); });
+    if (x.indexOf("@") > -1) return true;
+    if (/\d{9,}/.test(x.replace(/(\d)[\s.,_()+\/|।:;*#~-]+(?=\d)/g, "$1"))) return true;
+    return DWR.test(x) || KW.test(x);
+  }
+  function blocked(e) { return !!(e && /contact_info_blocked/.test(e.message || "")); }
+  var chatTimer = null;
+  function stopTimer() { if (chatTimer) { clearInterval(chatTimer); chatTimer = null; } }
+  async function partnerNames(ids) {
+    var o = {}; ids = ids.filter(function (x, i) { return ids.indexOf(x) === i; });
+    if (!ids.length) return o;
+    var r = await db.rpc("partner_names", { ids: ids });
+    (r.data || []).forEach(function (p) { o[p.id] = p.full_name; });
+    return o;
+  }
+  async function chatList(c) {
+    stopTimer(); c.innerHTML = ""; c.appendChild(el("div", "empty", "লোড হচ্ছে..."));
+    var convs = [], ids = [], tm = {}, ap;
+    if (role === "parent") {
+      var pr = await db.from("tuition_posts").select("id,title").eq("parent_id", user.id);
+      if (pr.error) return loadErr(c);
+      pr.data.forEach(function (p) { tm[p.id] = p.title; }); ids = Object.keys(tm);
+      if (ids.length) {
+        ap = await db.from("applications").select("post_id,teacher_id").in("post_id", ids).neq("status", "rejected");
+        if (ap.error) return loadErr(c);
+        ap.data.forEach(function (a) { convs.push({ post: a.post_id, partner: a.teacher_id, title: tm[a.post_id] }); });
+      }
+    } else {
+      ap = await db.from("applications").select("post_id").eq("teacher_id", user.id).neq("status", "rejected");
+      if (ap.error) return loadErr(c);
+      ids = ap.data.map(function (a) { return a.post_id; });
+      var pm = {};
+      if (ids.length) {
+        var pr2 = await db.from("tuition_posts").select("id,title,parent_id").in("id", ids);
+        (pr2.data || []).forEach(function (p) { pm[p.id] = p.parent_id; tm[p.id] = p.title; });
+        var ct = await db.from("contracts").select("post_id,parent_id").in("post_id", ids);
+        (ct.data || []).forEach(function (k) { pm[k.post_id] = k.parent_id; });
+      }
+      ids.forEach(function (id) { if (pm[id]) convs.push({ post: id, partner: pm[id], title: tm[id] }); });
+    }
+    c.innerHTML = "";
+    if (!convs.length) return emptyIn(c, "এখনো কোনো কথোপকথন নেই। আবেদন বা টিউশন পোস্ট হলে এখানে বার্তা পাঠানো যাবে।");
+    var nm = await partnerNames(convs.map(function (x) { return x.partner; }));
+    convs.forEach(function (v) {
+      var d = item(c, nm[v.partner] || "ব্যবহারকারী", "", [v.title || "টিউশন আলোচনা"]);
+      act(d, "বার্তা দেখুন", "", function () { return openChat(c, v, nm[v.partner]); });
+    });
+    c.appendChild(el("p", "note", RULE));
+  }
+  async function openChat(c, v, name) {
+    stopTimer(); c.innerHTML = "";
+    var back = el("button", "btn ghost", "← ফিরে যান"); back.onclick = function () { chatList(c); }; c.appendChild(back);
+    var h = el("h3", "", (name || "ব্যবহারকারী") + " — " + (v.title || "টিউশন আলোচনা")); h.style.margin = "12px 0"; c.appendChild(h);
+    var box = el("div"); box.style.cssText = "max-height:50vh;overflow:auto;padding:8px 0"; c.appendChild(box);
+    c.insertAdjacentHTML("beforeend", '<textarea id="chIn" rows="2" maxlength="1000" placeholder="আপনার বার্তা লিখুন"></textarea><div id="chMsg"></div><button class="btn" id="chBtn" style="margin-top:10px">পাঠান</button>');
+    c.appendChild(el("p", "note", RULE));
+    async function load() {
+      var r = await db.from("messages").select("*").eq("post_id", v.post)
+        .or("and(sender_id.eq." + user.id + ",recipient_id.eq." + v.partner + "),and(sender_id.eq." + v.partner + ",recipient_id.eq." + user.id + ")")
+        .order("created_at", { ascending: true });
+      if (r.error) return noTable(box, r.error);
+      var near = !box.hasChildNodes() || (box.scrollHeight - box.scrollTop - box.clientHeight < 80);
+      box.innerHTML = "";
+      if (!r.data.length) box.appendChild(el("div", "empty", "এখনো কোনো বার্তা নেই। প্রথম বার্তা পাঠান।"));
+      r.data.forEach(function (m) {
+        var mine = m.sender_id === user.id, w = el("div", "bw" + (mine ? " me" : ""));
+        w.appendChild(el("div", "bub" + (mine ? " me" : "") + (m.flagged ? " fl" : ""), m.body));
+        w.appendChild(el("div", "bt", dt(m.created_at) + " " + new Date(m.created_at).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })));
+        box.appendChild(w);
+      });
+      if (near) box.scrollTop = box.scrollHeight;
+    }
+    await load(); chatTimer = setInterval(load, 15000);
+    $("chBtn").onclick = async function () {
+      var t = $("chIn").value.trim();
+      if (!t) return msg("chMsg", "বার্তা লিখুন।");
+      if (hasContact(t)) return msg("chMsg", WARN);
+      $("chBtn").disabled = true;
+      var r = await db.from("messages").insert({ post_id: v.post, sender_id: user.id, recipient_id: v.partner, body: t });
+      $("chBtn").disabled = false;
+      if (r.error) return msg("chMsg", blocked(r.error) ? WARN : "বার্তা পাঠানো যায়নি।");
+      $("chIn").value = ""; msg("chMsg", ""); await load();
+    };
+  }
+  LOAD.messages = async function (c) {
+    c.innerHTML = "";
+    var tabs = el("div"), b1 = el("button", "btn", "চ্যাট"), b2 = el("button", "btn ghost", "বিজ্ঞপ্তি"), body = el("div");
+    tabs.style.marginBottom = "12px"; b1.style.marginRight = "8px"; tabs.appendChild(b1); tabs.appendChild(b2); c.appendChild(tabs); c.appendChild(body);
+    b1.onclick = function () { b1.className = "btn"; b2.className = "btn ghost"; chatList(body); };
+    b2.onclick = function () { b2.className = "btn"; b1.className = "btn ghost"; stopTimer(); body.innerHTML = ""; LOAD.notif(body); };
+    chatList(body);
+  };
+  LOAD.aviol = async function (c) {
+    var r = await db.from("message_violations").select("*").order("created_at", { ascending: false }).limit(100);
+    if (r.error) return noTable(c, r.error);
+    if (!r.data.length) return emptyIn(c, "কোনো সন্দেহজনক বার্তা নেই।");
+    var cn = {}; r.data.forEach(function (v) { cn[v.sender_id] = (cn[v.sender_id] || 0) + 1; });
+    var nm = await names(r.data.map(function (v) { return v.sender_id; })); c.innerHTML = "";
+    r.data.forEach(function (v) { item(c, nm[v.sender_id] || "ব্যবহারকারী", dt(v.created_at), ["মূল বার্তা: " + v.original_body, "সাম্প্রতিক মোট লঙ্ঘন: " + bn(cn[v.sender_id])]); });
+  };
+
   function render(key) {
+    stopTimer();
     if (key === "logout") return doLogout();
     current = key; buildSide();
     var p = $("panel"); p.innerHTML = "";
